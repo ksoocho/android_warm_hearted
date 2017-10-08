@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <script src="./cordova.js"></script>
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jquery.session.js"></script>
+    <script src="./js/jqm.page.params.js"></script>
+    <script src="./js/book_page.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+
+</head>
+
+<body>
+
+<script type="text/javascript">
+
+    var g_book_id = 0;
+
+    $(document).bind("mobileinit", function() {
+         $.mobile.autoInitializePage = false;
+         $.mobile.defaultPageTransition = "fade";
+         $.mobile.loadingMessage = "Loading...";
+    });
+
+    $(document).bind('pagebeforechange', function(event, data) {
+        $.mobile.pageData = ( data && data.options && data.options.pageData)
+                           ? data.options.pageData : null;
+    });
+
+    //-------------------------------------------
+    // View Book Detail Page
+    //-------------------------------------------
+    $(document).on('pagebeforeshow','#pageViewBookDetail', function(event, data) {
+
+        g_book_id =  $.session.get("curr_book_id");
+
+        $('#pgDetailCurrPage').val(1);
+        $('#pgDetailBookID').val(g_book_id);
+
+        loadDetailPage(g_book_id, 1);
+
+        displayBookName(g_book_id);
+
+    });
+
+    //-------------------------------------------
+    // View Detail Page
+    //-------------------------------------------
+    $(document).on('pagebeforeshow','#pageViewPageDetail', function(event, data) {
+
+        word_type = $.mobile.pageData.word_type;
+        word_id   = $.mobile.pageData.word_id;
+
+        viewPageDetail(g_book_id, word_type, word_id);
+    });
+
+ $(document).ready(function(){
+
+        //-------------------------------------------
+        // First 버튼을 누른 경우
+        //-------------------------------------------
+        $("#btnDetailFirst").click(function(){
+
+            var page = 1;
+            $('#pgDetailCurrPage').val(page);
+            loadDetailPage(g_book_id, page);
+        });
+
+        //-------------------------------------------
+        // Previous 버튼을 누른 경우
+        //-------------------------------------------
+        $("#btnDetailPrev").click(function(){
+
+            var curr_page = $('#pgDetailCurrPage').val();
+            var page = 1;
+
+            if (parseInt(curr_page,10) > 1) {
+               page = parseInt(curr_page,10) - 1;
+            }
+
+            $('#pgDetailCurrPage').val(page);
+            loadDetailPage(g_book_id, page);
+
+        });
+
+        //-------------------------------------------
+        // Next 버튼을 누른 경우
+        //-------------------------------------------
+        $("#btnDetailNext").click(function(){
+
+            var curr_page = $('#pgDetailCurrPage').val();
+            var total_page = $('#pgDetailTotalPage').val();
+            var page = total_page;
+
+            if (parseInt(curr_page,10) < parseInt(total_page,10)) {
+               page = parseInt(curr_page,10) + 1;
+            }
+
+            $('#pgDetailCurrPage').val(page);
+            loadDetailPage(g_book_id, page);
+
+        });
+
+        //-------------------------------------------
+        // Last 버튼을 누른 경우
+        //-------------------------------------------
+        $("#btnDetailLast").click(function(){
+
+            var total_page = $('#pgDetailTotalPage').val();
+            var page = total_page;
+
+            $('#pgDetailCurrPage').val(page);
+            loadDetailPage(g_book_id, page);
+
+        });
+
+        //-------------------------------------------
+        // 스크랩 버튼
+        //-------------------------------------------
+        $("#detail_favorite_btn").click(function(){
+
+            var book_id = $.session.get('book_id');
+            var word_id = $('#detail_word_id').val();
+            var word_type = $('#detail_word_type').val();
+
+           if ( word_type == "STD" ) {
+               saveFavoritePage(book_id, word_type, word_id);
+           } else {
+               $("#viewDetailMessage").html("<span style='color:#cc0000'> 스크랩불가-개인글입니다 </span>" );
+           }
+
+        });
+
+        //------------------------------------------------------------
+        //  Back Button
+        //------------------------------------------------------------
+        $("#detail_back").click(function(){
+             history.back();
+		     return false;
+        });
+
+        $("#detail_prev").click(function(){
+              word_type = $('#detail_word_type').val();
+              word_id   = $('#prev_word_id').val();
+              viewPageDetail(g_book_id, word_type, word_id);
+        });
+
+        $("#detail_next").click(function(){
+              word_type = $('#detail_word_type').val();
+              word_id   = $('#next_word_id').val();
+              viewPageDetail(g_book_id, word_type, word_id);
+        });
+
+        //-------------------------------------------
+        // 종료 버튼
+        //-------------------------------------------
+        $("#page_list_exit").click(function(){
+            navigator.app.exitApp();
+        });
+
+
+    });
+
+
+</script>
+
+<!-- ************************************** -->
+<!--  View Book Page List                   -->
+<!-- ************************************** -->
+
+<div data-role="page" id="pageViewBookDetail">
+
+    <div data-role="header" data-position="fixed">
+        <h1>마음 따뜻한 세상</h1>
+        <a href="#" data-icon="arrow-l" id=back_book_list_detail data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back"></a>
+    </div>
+
+
+    <div role="main" class="ui-content">
+
+        <!--  Book Title  -->
+        <h2><div id="pgDetailBookTitle"> </div></h2>
+
+        <!--  Page List  -->
+        <ul id="book_page_list" data-role="listview">
+        </ul>
+
+        <br><br>
+
+        <div class="ui-grid-d">
+            <div class="ui-block-a"> <a href="#" id="btnDetailFirst" class="ui-btn ui-btn-inline ui-mini"  >First</a> </div>
+            <div class="ui-block-b"> <a href="#" id="btnDetailPrev"  class="ui-btn ui-btn-inline ui-mini"  >Prev</a> </div>
+            <div class="ui-block-c"> <h4><center><div id="detailPageDisplay"></div></center> </h4> </div>
+            <div class="ui-block-d"> <a href="#" id="btnDetailNext"  class="ui-btn ui-btn-inline ui-mini"  >Next</a> </div>
+            <div class="ui-block-e"> <a href="#" id="btnDetailLast"  class="ui-btn ui-btn-inline ui-mini"  >Last</a> </div>
+        </div>
+
+        <input type="hidden" id="pgDetailCurrPage"   name="pgDetailCurrPage"   value="" />
+        <input type="hidden" id="pgDetailTotalPage"  name="pgDetailTotalPage"  value="" />
+        <input type="hidden" id="pgDetailBookID"     name="pgDetailBookID"      value="" />
+
+    </div>
+
+    <div data-role="footer" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a href="book_view.html" data-ajax="false" id="page_list_back"  class="ui-btn-active" data-icon="home">Back</a></li>
+                <li><a href="index.html" data-ajax="false" id="page_list_home"  class="ui-btn-active" data-icon="home">Home</a></li>
+                <li><a href="" id="page_list_exit"  class="ui-btn-active" data-icon="delete">종료</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- ************************************** -->
+<!--  View Page                             -->
+<!-- ************************************** -->
+<div data-role="page" id="pageViewPageDetail">
+
+    <div data-role="header" data-position="fixed">
+        <h1>마음 따뜻한 세상</h1>
+        <a href="#pageViewBookDetail" data-icon="arrow-l" id=back_book_page_detail data-theme="c" class="ui-btn-left" data-iconpos="notext" ></a>
+    </div>
+
+
+    <div role="main" class="ui-content">
+
+        <div id="detail_page_title" > </div>
+
+        <div id="detail_photo" > </div>
+
+        <div id="detail_title">  </div>
+
+        <div id="detail_url"> </div>
+
+        <div id="detail_text" > </div>
+
+        <span class='msg'></span> <div id="viewDetailMessage"></div>
+
+        <input type="hidden" id="detail_word_id"    name="detail_word_id"     value="" />
+        <input type="hidden" id="detail_word_type"  name="detail_word_type"  value="" />
+        <input type="hidden" id="prev_word_id"       name="prev_word_id"      value="" />
+        <input type="hidden" id="next_word_id"       name="next_word_id"      value="" />
+
+    </div>
+
+    <div data-role="footer" data-position="fixed">
+        <div data-role="navbar">
+            <ul>
+                <li><a id="detail_back" href="" class="ui-btn-active" data-icon="home" >Back</a></li>
+                <li><a id="detail_prev" href="" class="ui-btn-active" data-icon="arrow-l" >이전</a></li>
+                <li><a id="detail_next" href="" class="ui-btn-active" data-icon="arrow-r" >다음</a></li>
+                <li><a id="detail_favorite_btn" href="" class="ui-btn-active" data-icon="star" >스크랩</a> </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jqm.page.params.js"></script>
+    <script src="./js/jquery.session.js"></script>
+    <script src="./js/cks.page.view.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+
+</head>
+
+<body>
+
+<!-- ************************************** -->
+<!-- Java Script                            -->
+<!-- ************************************** -->
+
+<script type="text/javascript">
+
+      <!-------------------------->
+      <!-- Global Variables     -->
+      <!-------------------------->
+
+       $(document).bind('pagebeforechange', function(event, data) {
+            $.mobile.pageData = ( data && data.options && data.options.pageData)
+                               ? data.options.pageData : null;
+
+	   });
+
+      <!-------------------------->
+      <!-- pageinit : indexPage -->
+      <!-------------------------->
+		$(document).on('pageinit','#indexPage', function() {
+		    getMainCount();
+		});
+
+		function getMainCount() {
+
+		$.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_sub_photo.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_sub_photo){
+
+		             var v_sub_photo = '<center>'+
+          	                            '<img src=http://ksoocho.cafe24.com/warm_heart/cks_jquery/jphoto_view.php?photo_id=' +
+          	                            item_sub_photo.photo_id + ' width=290 /> ' +
+          	                            '</center>';
+
+                      $('#sub_photo').html(v_sub_photo);
+
+		            });
+		        },
+		        error: function(){
+		             var v_sub_photo = '<center>'+
+          	                            '<img src=./img/sub.jpg width=290 /> ' +
+          	                            '</center>';
+
+                      $('#sub_photo').html(v_sub_photo);
+
+		        }
+		    });
+
+		}
+
+
+    <!-------------------------->
+    <!-- Button Event  -->
+    <!-------------------------->
+
+	$(document).ready(function() {
+
+			$("#refresh_index").click(function(){
+				location.reload();
+		  	});
+
+            $("#view_reload").click(function(){
+                location.reload();
+                //viewDetail();
+            });
+
+            $("#refresh_view").click(function(){
+                location.reload();
+                //viewDetail();
+            });
+
+			$("#view_favorite_btn").click(function(){
+
+				var book_id = $.session.get('book_id');
+                var word_id = $('#view_detail_id').val();
+
+                if (book_id) {
+				   saveFavoritePage(book_id, 'STD', word_id);
+                } else {
+                   $("#viewDetailMessage").html("<span style='color:#cc0000'>로그인하세요</span>" );
+                }
+		  	});
+
+		  	$("#send_word_btn").click(function(){
+
+                var word_id = $('#view_detail_id').val();
+
+                window.open('http://ksoocho.cafe24.com/warm_heart/cks_jquery/view_word.php?like_id='+word_id, '_blank', 'location=yes');
+
+		  	});
+
+			//------------------------------------------------------------
+			//  Back Button
+			//------------------------------------------------------------
+			$("#index_main_back").click(function(){
+			   parent.history.back();
+			   return false;
+			});
+
+			$("#view_back").click(function(){
+			   parent.history.back();
+			   return false;
+			});
+
+			$("#lotto_back").click(function(){
+			   parent.history.back();
+			   return false;
+			});
+
+		});
+
+	</script>
+
+
+<!-- ************************************** -->
+<!-- indexPage                              -->
+<!-- ************************************** -->
+<div data-role="page" id="indexPage">
+
+
+    <div data-role="header" data-position="fixed">
+        <h1> 마음 따뜻한 세상 </h1>
+        <a href="" data-icon="arrow-l" id=back_index data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+    </div>
+
+
+    <div role="main" class="ui-content">
+
+        <div id="sub_photo">
+        </div>
+
+        <br>
+
+        <ul id="main_list" data-role="listview">
+            <li><a href="#viewPage?article_type=STORY&article_detail_type=THANK" > 감동이야기 </a></li>
+            <li><a href="#viewPage?article_type=STORY&article_detail_type=FUNNY" > 재미/유머 </a></li>
+            <li><a href="#viewPage?article_type=STORY&article_detail_type=ESSAY" > 수필/단편 </a></li>
+            <li><a href="#viewPage?article_type=STORY&article_detail_type=FAMOUS" > 명문장 </a></li>
+            <li><a href="storylistpage.html" data-ajax="false" > 이야기 목록 </a> </li>
+        </ul>
+
+    </div>
+
+    <div data-role="footer">
+        <div data-role="navbar">
+            <ul>
+                <li><a id="index_main_back" href="" class="ui-btn-active" data-icon="home">Home</a></li>
+            </ul>
+        </div>
+        <h4><small>따뜻한 세상</small></h4>
+    </div>
+
+</div>
+
+<!-- ************************************** -->
+<!-- View Page                               -->
+<!-- ************************************** -->
+<div data-role="page" id="viewPage" >
+
+    <div data-role="header" data-position="fixed">
+        <h1> 마음 따뜻한 세상 </h1>
+        <a href="" data-icon="arrow-l" id=back_view data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        <a href="" data-icon="refresh" id=refresh_view data-theme="c" class="ui-btn-right" data-iconpos="notext"></a>
+    </div>
+
+    <div role="main" class="ui-content">
+
+        <div id="detail_photo" >
+        </div>
+
+        <div id="detail_title">
+        </div>
+
+        <div id="detail_url">
+        </div>
+
+        <div id="detail_text" >
+        </div>
+
+        <input type="hidden" id="view_detail_id"  name="view_detail_id"  value="" />
+
+        <!-- 표지배경저장 -->
+        <div data-role="fieldcontain">
+            <section class="ui-grid-solo">
+                <div class="ui-block-a"><a href="#" id="view_reload" class="ui-btn" > 다른 글 보기</a></div>
+            </section>
+        </div>
+
+        <span class='msg'></span> <div id="viewDetailMessage"></div>
+        <!-- Content End -->
+    </div>
+
+    <!-- Footer Start-->
+    <div data-role="footer"  >
+        <div data-role="navbar">
+            <ul>
+                <li><a id="view_back" href="" class="ui-btn-active" data-icon="home">Back</a></li>
+                <li><a id="view_favorite_btn" href="" class="ui-btn-active" data-icon="star">스크랩</a> </li>
+                <li><a id="send_word_btn" href="" class="ui-btn-active" data-icon="star">글보내기</a> </li>
+            </ul>
+        </div>
+        <h4><small>따뜻한 세상</small></h4>
+    </div>
+
+</div>
+
+
+</body>
+</html>

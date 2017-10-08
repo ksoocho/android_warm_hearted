@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jqm.page.params.js"></script>
+    <script src="./js/cks.page.view.js"></script>
+    <script src="./js/cks.page.search.js"></script>
+    <script src="./js/jquery.session.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+
+</head>
+
+<body>
+
+<!-- ************************************** -->
+<!-- Java Script                            -->
+<!-- ************************************** -->
+
+<script type="text/javascript">
+
+      <!-------------------------->
+      <!-- Global Variables     -->
+      <!-------------------------->
+
+       $(document).bind('pagebeforechange', function(event, data) {
+            $.mobile.pageData = ( data && data.options && data.options.pageData)
+                               ? data.options.pageData : null;
+
+	   });
+
+      <!-------------------------->
+      <!-- pageinit : indexPage -->
+      <!-------------------------->
+		$(document).on('pageinit','#indexPage', function() {
+		    getMainCount();
+		});
+
+		function getMainCount() {
+
+		$.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_sub_photo.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_sub_photo){
+
+		             var v_sub_photo = '<center>'+
+          	                            '<img src=http://ksoocho.cafe24.com/warm_heart/cks_jquery/jphoto_view.php?photo_id=' +
+          	                            item_sub_photo.photo_id + ' width=290 /> ' +
+          	                            '</center>';
+
+                      $('#sub_photo').html(v_sub_photo);
+
+		            });
+		        },
+		        error: function(){
+		             var v_sub_photo = '<center>'+
+          	                            '<img src=./img/sub.jpg width=290 /> ' +
+          	                            '</center>';
+
+                      $('#sub_photo').html(v_sub_photo);
+
+		        }
+		    });
+
+		}
+
+      <!-------------------------->
+      <!-- pageinit : Lotto Page -->
+      <!-------------------------->
+		$(document).on('pageinit','#lottoPage', function() {
+		    getLotto();
+		});
+
+		function getLotto() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_lotto_list.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_lotto){
+
+                    $('#lottoList').append('<img src=./img/lotto/ball'+item_lotto+'.gif>');
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+
+      <!-------------------------->
+      <!-- pageinit : PhotoPage -->
+      <!-------------------------->
+		$(document).on('pageinit','#photoPage', function() {
+		    getPhotoCount();
+		});
+
+		function getPhotoCount() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_photo_list.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_photo){
+
+                     $('#inspire_count').html(item_photo.inspire_count);
+                     $('#face_count').html(item_photo.face_count);
+                     $('#nature_count').html(item_photo.nature_count);
+                     $('#animal_count').html(item_photo.animal_count);
+                     $('#plant_count').html(item_photo.plant_count);
+                     $('#flower_count').html(item_photo.flower_count);
+                     $('#house_count').html(item_photo.house_count);
+                     $('#fun_count').html(item_photo.fun_count);
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+      <!-------------------------->
+      <!-- pageinit : OldPage   -->
+      <!-------------------------->
+		$(document).on('pageinit','#oldPage', function() {
+		    getOldCount();
+		});
+
+		function getOldCount() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_old_list.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_old){
+
+                     $('#ddg_count').html(item_old.ddg_count);
+                     $('#jang_count').html(item_old.jang_count);
+                     $('#non_count').html(item_old.non_count);
+                     $('#root_count').html(item_old.root_count);
+                     $('#msbg_count').html(item_old.msbg_count);
+                     $('#etc_count').html(item_old.etc_count);
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+      <!-------------------------->
+      <!-- pageinit : TopPage  -->
+      <!-------------------------->
+		$(document).on('pageinit','#likePage', function() {
+		    getTopList();
+		});
+
+		function getTopList() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_top_list.php?sortType=TOP',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_top){
+
+                    $('#topList').append('<li><h6><a href=#viewPage?like_id='+
+                                          item_top.photo_id +'> ' +
+                                          item_top.photo_title + '</h6></a>' +
+							              '<span class=ui-li-count>' + item_top.like_count + '</span> </li>');
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+      <!-------------------------->
+      <!-- pageinit : Search Page  -->
+      <!-------------------------->
+		$(document).on('pageinit','#searchPage', function() {
+		    getSearchList();
+		});
+
+		function getSearchList() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_top_list.php?sortType=NEW',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_new){
+
+                    $('#searchList').append('<li><h6><a href=#viewPage?like_id='+
+                                          item_new.photo_id +'> ' +
+                                          item_new.photo_title + '</h6></a>' +
+							              '<span class=ui-li-count>' + item_new.like_count + '</span> </li>');
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+    <!-------------------------->
+    <!-- Button Event  -->
+    <!-------------------------->
+
+	$(document).ready(function() {
+
+			$("#refresh_index").click(function(){
+				location.reload();
+		  	});
+
+			$("#lotto_btn").click(function(){
+				location.reload();
+		  	});
+
+            $("#view_reload").click(function(){
+                location.reload();
+                //viewDetail();
+            });
+
+            $("#refresh_view").click(function(){
+                location.reload();
+                //viewDetail();
+            });
+
+			$("#btnFavoritePage").click(function(){
+
+				var book_id = $.session.get('book_id');
+                var word_id = $('#view_detail_id').val();
+
+                if (book_id) {
+				  saveFavoritePage(book_id, 'STD', word_id);
+                } else {
+                  $("#viewDetailMessage").html("<span style='color:#cc0000'>로그인하세요</span>" );
+                }
+		  	});
+
+			//------------------------------------------------------------
+			//  Back Button
+			//------------------------------------------------------------
+			$("#index_photo_back").click(function(){
+			   parent.history.back();
+			   return false;
+			});
+
+			$("#view_back").click(function(){
+			   parent.history.back();
+			   return false;
+			});
+
+		});
+
+	</script>
+
+
+<!-- ************************************** -->
+<!-- indexPage                              -->
+<!-- ************************************** -->
+<div data-role="page" id="indexPage">
+
+
+    <div data-role="header" data-add-back-btn="true">
+        <h1> 마음 따뜻한 세상 </h1>
+        <a href="" data-icon="arrow-l" id=back_index data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+    </div>
+
+
+    <div role="main" class="ui-content">
+
+        <div id="sub_photo">
+        </div>
+
+        <br>
+
+        <ul id="main_list" data-role="listview">
+			<li><a href="#viewPage?article_type=MOVIE" > 영화 </a> </li>
+			<li><a href="#viewPage?article_type=TED" > TED 강연 </a> </li>
+            <li><a href="#viewPage?article_type=VIDEO" > 감동영상 </a> </li>
+            <li><a href="#viewPage?article_type=BOOK" > 마음의 양식 </a> </li>
+            <li><a href="#viewPage?article_type=MUSIC" > 음악가사 </a> </li>
+        </ul>
+
+    </div>
+
+    <div data-role="footer">
+		<div data-role="navbar">
+			<ul>
+				<li><a id="index_photo_back" href="" class="ui-btn-active" data-icon="home">Back</a></li>
+			</ul>
+		</div>
+        <h4><small>따뜻한 세상</small></h4>
+    </div>
+
+</div>
+
+<!-- ************************************** -->
+<!-- View Page                               -->
+<!-- ************************************** -->
+<div data-role="page" id="viewPage" >
+
+    <div data-role="header" data-add-back-btn="true">
+        <h1> 마음 따뜻한 세상 </h1>
+        <a href="" data-icon="arrow-l" id=back_view data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        <a href="" data-icon="refresh" id=refresh_view data-theme="c" class="ui-btn-right" data-iconpos="notext"></a>
+    </div>
+
+    <div role="main" class="ui-content">
+
+        <div id="detail_photo" >
+        </div>
+
+        <div id="detail_title">
+        </div>
+
+        <div id="detail_url">
+        </div>
+
+        <div id="detail_text" >
+        </div>
+
+		<!-- 표지배경저장 -->
+		<div data-role="fieldcontain">
+			<section class="ui-grid-solo">
+				<div class="ui-block-a"><a href="#" id="view_reload" class="ui-btn" > 다른 작품 보기</a></div>
+			</section>
+		</div>
+
+        <input type="hidden" id="view_detail_id"  name="view_detail_id"  value="" />
+
+        <span class='msg'></span> <div id="viewDetailMessage"></div>
+        <!-- Content End -->
+    </div>
+
+    <!-- Footer Start-->
+    <div data-role="footer"  >
+        <div data-role="navbar">
+            <ul>
+                <li><a id="view_back" href="" class="ui-btn-active" data-icon="home">Back</a></li>
+                <li><a id="btnFavoritePage" href="" class="ui-btn-active" data-icon="star">스크랩</a> </li>
+            </ul>
+        </div>
+        <h4><small>따뜻한 세상</small></h4>
+    </div>
+
+</div>
+
+</body>
+</html>

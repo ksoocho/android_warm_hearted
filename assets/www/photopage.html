@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+
+
+    <!-- ************************************** -->
+    <!-- PhotoPage                              -->
+    <!-- ************************************** -->
+    <div data-role="page" id="photoPage">
+    
+        <div data-role="header"  data-add-back-btn="true">
+             <a href="" data-icon="arrow-l" id=back_photo data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+             <h3> 마음 따뜻한 사진 </h3>
+        </div>
+        
+        <div role="main" class="ui-content">
+
+            <ul data-role="listview">
+                <li data-role="list-divider"> <h3> 사진모음 </h3>
+                <li><a href="#viewPage?article_type=PHOTO&article_detail_type=INSPIRATION">생각 나누기</a>
+                    <span class="ui-li-count"><div id="inspire_count"></div></span> </li>
+                <li><a href="#viewPage?article_type=PHOTO&article_detail_type=FACE">환하게 웃는 얼굴</a> 
+                    <span class="ui-li-count"><div id="face_count"></div></span> </li>
+                <li><a href="#viewPage?article_type=PHOTO&article_detail_type=NATURE">아름다운 자연</a> 
+                    <span class="ui-li-count"><div id="nature_count"></div></span> </li>
+                <li><a href="#viewPage?article_type=PHOTO&article_detail_type=ANIMAL">귀여운 동물</a> 
+                    <span class="ui-li-count"><div id="animal_count"></div></span> </li>
+            </ul>
+            
+        </div>
+
+        <div data-role="footer">
+          <div data-role="navbar">
+          <ul>
+            <li><a id="photo_back" href="javascript:history.go(-1)">Back</a></li>
+          </ul>
+          </div>
+          <h4><small>따뜻한 세상</small></h4>
+        </div>
+        
+    </div>
+
+    </body>
+</html>

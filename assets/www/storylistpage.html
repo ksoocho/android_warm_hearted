@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jqm.page.params.js"></script>
+    <script src="./js/jquery.session.js"></script>
+    <script src="./js/cks.page.detail.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    var $totalCount = 0;
+    var $listmsg = "";
+    var $itemType = "STORY";
+
+    function setSearchTotal(search_str){
+
+        var dataString = 'itemType='+$itemType+'&searchStr='+search_str;
+
+        $.ajax({
+                type: "POST",
+                url: "http://ksoocho.cafe24.com/warm_heart/ajax/ajaxWordListTotal.php",
+                data: dataString,
+                cache: false,
+                async: false,
+                success: function(data) {
+                   $totalCount = data;
+                }
+            });
+    }
+
+    function setSearchData(search_str, page){
+
+        $listmsg = "";
+
+        var dataString = 'itemType='+$itemType+'&searchStr='+search_str+'&page='+page;
+
+        $.ajax({
+            type: "POST",
+            url: "http://ksoocho.cafe24.com/warm_heart/ajax/ajaxWordList.php",
+            data: dataString,
+            cache: false,
+            dataType:'json',
+            async: false,
+            success: function(data) {
+
+                $.each(data, function(index, entry) {
+                   $listmsg = $listmsg + '<li><a href=#viewDetailPage?like_id='+entry.photo_id +'> ' + entry.photo_title + '</a> </li>';
+                });
+            }
+        });
+
+         $("#word_list").html($listmsg);
+         $('#word_list').trigger('create');
+         $('#word_list').listview('refresh');
+
+    }
+
+    function loadSearchData(search_str, page){
+
+        //-------------------------------
+        // Pagination
+        //-------------------------------
+        var $cur_page = page;
+        var $per_page = 10;
+
+        // Total Count
+        setSearchTotal(search_str);
+
+        var $count = $totalCount;
+
+        // Total Page
+        var $no_of_paginations = Math.ceil($count / $per_page);
+
+        // Page Set
+        $('#pgSearchTotalPage').val($no_of_paginations);
+
+        var pageDisplay = $cur_page + " / " + $no_of_paginations;
+
+        $('#searchPageDisplay').text(pageDisplay);
+
+        //-------------------------------
+        // Content for Data
+        //-------------------------------
+        setSearchData(search_str, page);
+    }
+
+    <!--------------------------------------------------------------------------------------------------->
+    <!-- pageinit : WordListPage                                                                       -->
+    <!--------------------------------------------------------------------------------------------------->
+	$(document).on('pageinit','#wordListPage', function() {
+
+		    var searchstr = '';
+
+            $('#pgSearchCurrPage').val(1);
+
+            loadSearchData(searchstr, 1);
+	});
+
+
+      <!--------------------------------------------------------------------------------------------------->
+      <!-- document ready                                                                       -->
+      <!--------------------------------------------------------------------------------------------------->
+    $(document).ready(function(){
+
+        //---------------------------------------------
+        // Search 버튼을 누른 경우
+        //---------------------------------------------
+        $("#btnSearchFind").click(function(){
+
+            var searchstr = $('#pgSearchStr').val();
+
+            $('#pgSearchCurrPage').val(1);
+
+            loadSearchData( searchstr, 1);
+
+        });
+
+        //---------------------------------------------
+        // First 버튼을 누른 경우
+        //---------------------------------------------
+        $("#btnSearchFirst").click(function(){
+
+            var searchstr = $('#pgSearchStr').val();
+
+            $('#pgSearchCurrPage').val(1);
+
+            loadSearchData(searchstr, 1);
+
+        });
+
+        //---------------------------------------------
+        // Previous 버튼을 누른 경우
+        //---------------------------------------------
+        $("#btnSearchPrev").click(function(){
+
+            var searchstr = $('#pgSearchStr').val();
+
+            var curr_page = $('#pgSearchCurrPage').val();
+            var page = 1;
+
+            if (parseInt(curr_page,10) > 1) {
+               page = parseInt(curr_page,10) - 1;
+            }
+
+            $('#pgSearchCurrPage').val(page);
+
+            loadSearchData(searchstr, page);
+
+        });
+
+
+        //---------------------------------------------
+        // Next 버튼을 누른 경우
+        //---------------------------------------------
+        $("#btnSearchNext").click(function(){
+
+            var searchstr = $('#pgSearchStr').val();
+
+            var curr_page = $('#pgSearchCurrPage').val();
+            var total_page = $('#pgSearchTotalPage').val();
+            var page = total_page;
+
+            if (parseInt(curr_page,10) < parseInt(total_page,10)) {
+               page = parseInt(curr_page,10) + 1;
+            }
+
+            $('#pgSearchCurrPage').val(page);
+
+            loadSearchData( searchstr, page);
+
+        });
+
+        //---------------------------------------------
+        // Last 버튼을 누른 경우
+        //---------------------------------------------
+        $("#btnSearchLast").click(function(){
+
+            var searchstr = $('#pgSearchStr').val();
+
+            var total_page = $('#pgSearchTotalPage').val();
+            var page = total_page;
+
+            $('#pgSearchCurrPage').val(page);
+
+            loadSearchData(searchstr, page);
+
+        });
+
+        //---------------------------------------------
+        // 스크랩 버튼을 누른 경우
+        //---------------------------------------------
+        $("#view_favorite_btn").click(function(){
+
+            var book_id = $.session.get('book_id');
+            var word_id = $('#view_detail_id').val();
+
+            if (book_id) {
+               saveFavoritePage(book_id, 'STD', word_id);
+            } else {
+               $("#viewDetailMessage").html("<span style='color:#cc0000'>로그인하세요</span>" );
+            }
+		});
+
+		//------------------------------------------------------------
+        //  Back Button
+        //------------------------------------------------------------
+        $("#wordlist_back").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+        $("#view_detail_back").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+    });
+
+
+	</script>
+
+<!-- ************************************** -->
+<!-- List Page                              -->
+<!-- ************************************** -->
+<div data-role="page" id="wordListPage">
+
+    <div data-role="header" data-position="fixed">
+        <h1>좋은 글 목록</h1>
+        <a href="" data-icon="arrow-l" id=back_top data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+    </div>
+
+    <div role="main" class="ui-content">
+
+        <div class="ui-grid-a">
+            <div class="ui-block-a" style="width:70%"> <input type="text" name="pgSearchStr" id="pgSearchStr" value=""  /> </div>
+            <div class="ui-block-b" style="width:30%"> <a href="#" id="btnSearchFind" class="ui-btn ui-btn-inline ui-mini"  >Search</a> </div>
+        </div>
+
+        <br><br>
+
+        <ul id="word_list" data-role="listview">
+        </ul>
+
+        <br><br>
+        <div class="ui-grid-d">
+            <div class="ui-block-a"> <a href="#" id="btnSearchFirst" class="ui-btn ui-btn-inline ui-mini"  >First</a> </div>
+            <div class="ui-block-b"> <a href="#" id="btnSearchPrev"  class="ui-btn ui-btn-inline ui-mini"  >Prev</a> </div>
+            <div class="ui-block-c"> <h4><center><div id="searchPageDisplay"></div></center> </h4> </div>
+            <div class="ui-block-d"> <a href="#" id="btnSearchNext"  class="ui-btn ui-btn-inline ui-mini"  >Next</a> </div>
+            <div class="ui-block-e"> <a href="#" id="btnSearchLast"  class="ui-btn ui-btn-inline ui-mini"  >Last</a> </div>
+        </div>
+
+        <input type="hidden" id="pgSearchCurrPage"   name="pgSearchCurrPage"   value="" />
+        <input type="hidden" id="pgSearchTotalPage"  name="pgSearchTotalPage"  value="" />
+
+    </div>
+
+    <div data-role="footer">
+        <div data-role="navbar">
+            <ul>
+                <li><a id="wordlist_back" href="" class="ui-btn-active" data-icon="home">Back</a></li>
+            </ul>
+        </div>
+        <h4><small>Copyleft 2016 CKS Ideas Worth Spreading</small></h4>
+    </div>
+
+</div>
+
+<div data-role="page" id="viewDetailPage">
+
+    <div data-role="header" data-position="fixed">
+        <h1> 마음 따뜻한 세상 </h1>
+        <a href="" data-icon="arrow-l" id=back_view_detail data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+    </div>
+
+    <div role="main" class="ui-content">
+
+        <div id="view_detail_photo" >
+        </div>
+
+        <div id="view_detail_title">
+        </div>
+
+        <div id="view_detail_url">
+        </div>
+
+        <div id="view_dtl_text">
+        </div>
+
+        <span class='msg'></span> <div id="viewDetailMessage"></div>
+
+        <input type="hidden" id="view_detail_id"  name="view_detail_id"  value="" />
+
+        <!-- Content End -->
+    </div>
+
+    <!-- Footer Start-->
+    <div data-role="footer"  >
+        <div data-role="navbar">
+            <ul>
+                <li><a id="view_detail_back" href=""  class="ui-btn-active" data-icon="home">Back</a></li>
+                <li><a id="view_favorite_btn" href="" class="ui-btn-active" data-icon="star">스크랩</a> </li>
+            </ul>
+        </div>
+        <h4><small>따뜻한 세상</small></h4>
+    </div>
+
+</div>
+
+</body>
+</html>

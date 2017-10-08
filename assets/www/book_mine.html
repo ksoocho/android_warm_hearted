@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/warm_heart.css" />
+    <script src="./cordova.js"></script>
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jquery.session.js"></script>
+    <script src="./js/jqm.page.params.js"></script>
+    <script src="./js/book_login.js"></script>
+    <script src="./js/book_mine.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+
+</head>
+
+<body>
+
+    <script type="text/javascript">
+
+    var g_book_id = $.session.get('book_id');
+    var g_user_id = $.session.get('user_id');
+    var g_user_name = $.session.get('user_name');
+
+    $(document).bind("mobileinit", function() {
+         $.mobile.autoInitializePage = false;
+         $.mobile.defaultPageTransition = "fade";
+         $.mobile.loadingMessage = "Loading...";
+    });
+
+    $(document).bind('pagebeforechange', function(event, data) {
+        $.mobile.pageData = ( data && data.options && data.options.pageData)
+                           ? data.options.pageData : null;
+    });
+
+    // 나의 글모음 메인 페이지
+    $(document).on("pagebeforeshow","#pageBookMine",function(){
+      displayMineBook(g_book_id);
+    });
+
+    //표지수정 페이지
+    $(document).on("pagebeforeshow","#pageBookTitleChange",function(){
+      displayChangeBook(g_book_id);
+    });
+
+    // 목차수정 페이지
+    $(document).on("pagebeforeshow","#pageBookListChange",function(){
+        $('#pgSearchCurrPage').val(1);
+        loadPageData(g_book_id, 1);
+    });
+
+    //  로그인 페이지
+    $(document).on("pagebeforeshow","#pageBookLogin",function(){
+
+        $("#b_usercode").val("");
+        $("#b_password").val("");
+        $("#errorLogin").html("");
+
+        localStorage.clear();
+        $.session.clear();
+    });
+
+    // 목차수정 상세 페이지
+    $(document).on('pagebeforeshow','#pageListChangeDetail', function(event, data) {
+
+        var word_id = $.mobile.pageData.word_id;
+        var word_type = $.mobile.pageData.word_type;
+
+        displayChangeList(g_book_id, word_type, word_id);
+        viewPageDetail(word_type, word_id);
+    });
+
+    $(document).ready(function() {
+
+        $("#pgListPageNo").keypress(function (e) {
+         //if the letter is not digit then display error and don't type anything
+         if (e.which != 8 && e.which != 0 && (e.which < 48 || e.which > 57)) {
+            //display error message
+            $("#pgListMessage").html("<span style='color:#cc0000'>Number Only </span>" );
+            return false;
+        }
+       });
+
+        //------------------------------------------------------------
+        //  Main Page or Login Page 분기로직
+        //------------------------------------------------------------
+        if (g_user_name != null)
+        {
+            window.location.hash = 'pageBookMine';
+            $.mobile.initializePage();
+
+            $(':mobile-pagecontainer').pagecontainer('change', '#pageBookMine', {
+                    transition: 'flip',
+                    changeHash: false,
+                    reverse: true,
+                    showLoadMsg: true
+                });
+
+        } else {
+
+            window.location.hash = 'pageBookLogin';
+            $.mobile.initializePage();
+
+        }
+
+        //------------------------------------------------------------
+        //  BookMine  - 표지저장
+        //------------------------------------------------------------
+        $("#btnChangeBookSave").click(function(){
+
+            var book_name = $("#pgChangeBookTitle").val();
+            var book_descr = $("#pgChangeBookDescr").val();
+
+            saveChangeBook(g_book_id, book_name, book_descr);
+
+        });
+
+        //------------------------------------------------------------
+        //  BookMine  - 목차 저장
+        //------------------------------------------------------------
+        $("#btnListPageSave").click(function(){
+
+           var word_type   = $('#pgListPageWordType').val();
+           var word_id    = $('#pgListPageWordID').val();
+           var page_title  = $('#pgListPageTitle').val();
+           var page_no     = $('#pgListPageNo').val();
+           var post_script = $('#pgListPagePost').val();
+
+           saveListPage(g_book_id, word_type, word_id, page_title, page_no, post_script);
+
+        });
+
+        //------------------------------------------------------------
+        //  BookMine  - 목차 삭제
+        //------------------------------------------------------------
+        $("#btnListPageDelete").click(function(){
+
+           var word_id    = $('#pgListPageWordID').val();
+           var word_type   = $('#pgListPageWordType').val();
+
+            deleteListPage(g_book_id, word_type, word_id);
+
+        });
+
+        //------------------------------------------------------------
+        //  Person Page Save
+        //------------------------------------------------------------
+        $("#btnPerPageSave").click(function(){
+
+            var word_title = $("#pgPerPageTitle").val();
+            var word_content = $("#pgPerPageContent").val();
+
+            savePerPage(g_book_id, 'PER', word_title, word_content);
+        });
+
+        //------------------------------------------------------------
+        //  Login  - #pageWordLogin
+        //------------------------------------------------------------
+        $("#btnLogin").click(function(){
+
+            var usercode=$("#b_usercode").val();
+            var password=$("#b_password").val();
+
+            if(validateLogin(usercode, password)){
+                check_login( usercode, password );
+            };
+
+        });
+
+        //------------------------------------------------------------
+        //  Back Button
+        //------------------------------------------------------------
+        $("#book_mine_back").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+        //  BookMine  - 표지 Home
+        $("#btnChangeBookHome").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+        $("#book_change_back").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+        //  BookMine  - 목차 Home
+        $("#btnListPageHome").click(function(){
+           parent.history.back();
+		   return false;
+        });
+
+        //------------------------------------------------------------
+        //  HOME Button
+        //------------------------------------------------------------
+        $("#btnLoginHome").click(function(){
+           g_book_id = $.session.get('book_id');
+           parent.history.back();
+		   return false;
+        });
+
+        //-------------------------------------------
+        // 종료 버튼
+        //-------------------------------------------
+        $("#book_mine_exit").click(function(){
+            navigator.app.exitApp();
+        });
+
+    });
+
+    </script>
+
+    <!-- ************************************** -->
+    <!-- My Book                              -->
+    <!-- ************************************** -->
+    <div data-role="page" id="pageBookMine">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_mine data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div>
+
+
+        <div role="main" class="ui-content">
+
+            <!--  Book Title  -->
+            <h2><div id="pgMineBookTitle"> </div></h2>
+
+            <!--  Book Main Image  -->
+            <div id="mine_book_photo"> </div>
+
+            <!--  Book Description  -->
+            <h4><div id="pgMineBookDescr"> </div></h4>
+
+            <!--  Book Editor  -->
+            <h4><div id="pgMineBookUserName"> </div></h4>
+
+            <br>
+            <ul id="main_list" data-role="listview">
+                <li><a href="#pageBookTitleChange" > 글모음 표지 수정 </a> </li>
+                <li><a href="#pageBookListChange" > 글모음 목차 수정 </a> </li>
+                <li><a href="#pageBookPageAdd" > 나의 글 쓰기 </a> </li>
+                <li><a href="#pageBookLogin" > 로그아웃 </a> </li>
+            </ul>
+
+            <span class='msg'></span> <div id="mineBookMessage"></div>
+
+         </div>
+
+        <div data-role="footer">
+            <div data-role="navbar">
+                <ul>
+                    <li><a id="book_mine_back" href="" class="ui-btn-active" data-icon="home">Home</a></li>
+                    <li><a id="book_mine_exit" href="" class="ui-btn-active" data-icon="delete">종료</a></li>
+                </ul>
+            </div>
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!--  Book Title Page                       -->
+    <!-- ************************************** -->
+
+    <div data-role="page" id="pageBookTitleChange">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_title_change data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div>
+
+
+        <div role="main" class="ui-content">
+
+            <!--  Book Title  -->
+            <label for="pgChangeBookTitle"><strong>글모음 제목</strong></label>
+            <input type="text" name="pgChangeBookTitle" id="pgChangeBookTitle" value=""  />
+
+            <!--  Book Description  -->
+            <label for="pgChangeBookDescr"><strong>글모음 설명</strong></label>
+            <textarea name="pgChangeBookDescr" id="pgChangeBookDescr" data-autogrow="false" > </textarea>
+
+            <!--  Book Main Image  -->
+
+            <!--  Change Button  -->
+            <section class="ui-grid-a ui-mini">
+                <div class="ui-block-b" style="width:50%"> <input type="button" name="btnChangeBookSave" id="btnChangeBookSave" value="저장" /></div>
+                <div class="ui-block-b" style="width:50%"> <input type="button" name="btnChangeBookHome" id="btnChangeBookHome" value="Back" /></div>
+            </section>
+
+            <span class='msg'></span> <div id="changeBookMessage"></div>
+
+
+        </div>
+
+        <div data-role="footer">
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!--  Book List Page                        -->
+    <!-- ************************************** -->
+
+    <div data-role="page" id="pageBookListChange">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_list_change data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div>
+
+
+        <div role="main" class="ui-content">
+
+            <!--  Book Title  -->
+            <h2><div id="pgListBookTitle"> </div></h2>
+
+            <!--  Page List  -->
+            <ul id="book_page_list" data-role="listview">
+            </ul>
+
+            <br>
+            <div class="ui-grid-d">
+                <div class="ui-block-a"> <a href="#" id="btnSearchFirst" class="ui-btn ui-btn-inline ui-mini"  >First</a> </div>
+                <div class="ui-block-b"> <a href="#" id="btnSearchPrev"  class="ui-btn ui-btn-inline ui-mini"  >Prev</a> </div>
+                <div class="ui-block-c"> <h4><center><div id="searchPageDisplay"></div></center> </h4> </div>
+                <div class="ui-block-d"> <a href="#" id="btnSearchNext"  class="ui-btn ui-btn-inline ui-mini"  >Next</a> </div>
+                <div class="ui-block-e"> <a href="#" id="btnSearchLast"  class="ui-btn ui-btn-inline ui-mini"  >Last</a> </div>
+            </div>
+
+            <input type="hidden" id="pgSearchCurrPage"   name="pgSearchCurrPage"   value="" />
+            <input type="hidden" id="pgSearchTotalPage"  name="pgSearchTotalPage"  value="" />
+
+        </div>
+
+        <div data-role="footer">
+            <div data-role="navbar">
+                <ul>
+                    <li><a id="book_change_back" href="" class="ui-btn-active" data-icon="home">Back</a></li>
+                </ul>
+            </div>
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!--  Book List Page                        -->
+    <!-- ************************************** -->
+    <div data-role="page" id="pageListChangeDetail">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_page_change data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div>
+
+
+        <div role="main" class="ui-content">
+
+            <!--  Page Title  -->
+            <label for="pgListPageTitle"><strong>글 제목</strong></label>
+            <input type="text" name="pgListPageTitle" id="pgListPageTitle" value=""  />
+
+            <!--  Page No  -->
+            <label for="pgListPageNo"><strong>글 번호(정렬순서)</strong></label>
+            <input type="text" name="pgListPageNo" id="pgListPageNo" value=""  />
+
+            <!--  Book Description  -->
+            <label for="pgListPagePost"><strong> 글쓰기 & 느낌</strong></label>
+            <textarea name="pgListPagePost" id="pgListPagePost" data-autogrow="false" > </textarea>
+
+            <span class='msg'></span> <div id="pgListMessage"></div>
+            <!--  Page 수정 / 삭제 버튼  -->
+            <section class="ui-grid-a ui-mini">
+                <div class="ui-block-b" style="width:30%"> <input type="button" name="btnListPageSave" id="btnListPageSave" value="저장" /></div>
+                <div class="ui-block-b" style="width:40%"> <input type="button" name="btnListPageDelete" id="btnListPageDelete" value="스크랩취소" /></div>
+                <div class="ui-block-b" style="width:30%"> <input type="button" name="btnListPageHome" id="btnListPageHome" value="Back" /></div>
+            </section>
+
+            <div id="detail_photo" >
+            </div>
+
+            <div id="detail_title">
+            </div>
+
+            <div id="detail_url">
+            </div>
+
+            <div id="detail_text" >
+            </div>
+
+            <input type="hidden" id="pgListPageWordID"   name="pgListPageWordID"   value="" />
+            <input type="hidden" id="pgListPageWordType"  name="pgListPageWordType"  value="" />
+
+
+        </div>
+
+        <div data-role="footer">
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!--  글 추가                           -->
+    <!-- ************************************** -->
+
+    <div data-role="page" id="pageBookPageAdd">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_add data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div>
+
+
+        <div role="main" class="ui-content">
+
+            <!--  Book Title  -->
+            <label for="pgPerPageTitle"><strong>글 제목</strong></label>
+            <input type="text" name="pgPerPageTitle" id="pgPerPageTitle" value=""  />
+
+            <!--  Book Description  -->
+            <label for="pgPerPageContent"><strong>글내용</strong></label>
+            <textarea name="pgPerPageContent" id="pgPerPageContent" data-autogrow="false" > </textarea>
+
+            <!--  Book Main Image  -->
+
+            <!--  Change Button  -->
+            <section class="ui-grid-a ui-mini">
+                <div class="ui-block-b" style="width:50%"> <input type="button" name="btnPerPageSave" id="btnPerPageSave" value="저장" /></div>
+                <div class="ui-block-b" style="width:50%"> <input type="button" name="btnPerPageHome" id="btnPerPageHome" value="Back" /></div>
+            </section>
+
+            <span class='msg'></span> <div id="PerPageMessage"></div>
+
+        </div>
+
+        <div data-role="footer">
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!--  Login Page                        -->
+    <!-- ************************************** -->
+
+    <div data-role="page" id="pageBookLogin">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+            <a href="" data-icon="arrow-l" id=back_book_login data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+        </div><!-- /header -->
+
+        <div role="main" class="ui-content">
+
+            <form id="board_login" name="board_login" method="post" action="#" onsubmit="return false;">
+
+                <div data-role="fieldcontain">
+                    <section class="ui-grid-a ui-mini">
+                        <div class="ui-block-a" style="width:40%">	<label for="b_usercode" style="margin-top: 10px;"><strong>아이디</strong></label> </div>
+                        <div class="ui-block-b" style="width:60%">	<input type="text" name="b_usercode" id="b_usercode" value=""  /> </div>
+                        <div class="ui-block-a" style="width:40%"> <label for="b_password" style="margin-top: 10px;"><strong>비밀번호</strong></label> </div>
+                        <div class="ui-block-b" style="width:60%">	<input type="password" name="b_password" id="b_password" value=""  /> </div>
+                    </section>
+                </div>
+
+                <section class="ui-grid-a ui-mini">
+                    <div class="ui-block-a" style="width:40%"> <a href="book_user.html" data-role="button"  data-ajax="false"> User 등록 </a> </div>
+                    <div class="ui-block-b" style="width:30%"> <input type="button" name="btnLogin" id="btnLogin" value="로그인" /></div>
+                    <div class="ui-block-b" style="width:30%"> <input type="button" name="btnLoginHome" id="btnLoginHome" value="Back" /></div>
+                </section>
+
+                <span class='msg'></span><div id="errorLogin"></div>
+
+            </form>
+
+        </div><!-- /content -->
+
+        <div data-role="footer">
+            <h4><small>따뜻한 세상</small></h4>
+        </div> <!-- /footer -->
+
+    </div><!-- /page -->
+
+
+</body>
+</html>

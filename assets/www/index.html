@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" href="./css/index.css" />
+    <link rel="stylesheet" href="./js/jquery.mobile-1.4.5.min.css">
+    <script src="./cordova.js"></script>
+    <script src="./js/jquery-1.11.1.min.js"></script>
+    <script src="./js/jquery.mobile-1.4.5.min.js"></script>
+    <script src="./js/jquery.session.js"></script>
+
+    <title>마음 따뜻한 세상</title>
+
+</head>
+
+<body>
+
+    <!-- ************************************** -->
+    <!-- Java Script                            -->
+    <!-- ************************************** -->
+
+    <script type="text/javascript">
+
+    $(document).bind("mobileinit", function() {
+         $.mobile.autoInitializePage = false;
+         $.mobile.defaultPageTransition = "fade";
+         $.mobile.loadingMessage = "Loading...";
+         $.mobile.page.prototype.options.addBackBtn = true;
+    });
+
+    <!-------------------------->
+    <!-- pageinit : indexPage -->
+    <!-------------------------->
+    $(document).on('pageinit','#basePage', function() {
+
+        if (localStorage.getItem('user_name') != null)
+        {
+            $.session.set('user_id'  , localStorage.getItem('user_id'));
+            $.session.set('book_id'  , localStorage.getItem('book_id'));
+            $.session.set('user_name', localStorage.getItem('user_name'));
+        }
+
+        getMainImage();
+    });
+
+    function getMainImage() {
+
+    $.ajax({
+            url: 'http://ksoocho.cafe24.com/warm_heart/ajax/page/ajaxMainPhoto.php',
+            dataType: 'jsonp',
+            jsonp: 'jsoncallback',
+            timeout: 5000,
+            success: function(data, status){
+                $.each(data, function(i,item_sub_photo){
+
+                 var v_main_photo = '<center>'+
+                                    '<img src=http://ksoocho.cafe24.com/warm_heart/ajax/page/ajaxPagePhotoView.php?photo_id=' +
+                                    item_sub_photo.photo_id + ' width=290 /> <br>' +
+                                    item_sub_photo.photo_title +
+                                    '</center>';
+
+                  $('#main_photo').html(v_main_photo);
+
+                });
+            },
+            error: function(){
+                 var v_main_photo = '<center>'+
+                                    '<img src=./img/main.jpg width=290 /> ' +
+                                    '</center>';
+
+                  $('#main_photo').html(v_main_photo);
+
+            }
+        });
+
+    }
+
+      <!-------------------------->
+      <!-- pageinit : Lotto Page -->
+      <!-------------------------->
+		$(document).on('pageinit','#lottoPage', function() {
+		    getLotto();
+		});
+
+		function getLotto() {
+
+		    $.ajax({
+		        url: 'http://ksoocho.cafe24.com/warm_heart/cks_json/json_lotto_list.php',
+		        dataType: 'jsonp',
+		        jsonp: 'jsoncallback',
+		        timeout: 5000,
+		        success: function(data, status){
+		            $.each(data, function(i,item_lotto){
+
+                    $('#lottoList').append('<img src=./img/lotto/ball'+item_lotto+'.gif>');
+
+		            });
+		        },
+		        error: function(){
+		            output.text('There was an error loading the data.');
+		        }
+		    });
+
+		}
+
+    $(document).ready(function(){
+
+        //-------------------------------------------
+        // 종료 버튼
+        //-------------------------------------------
+        $("#home_exit").click(function(){
+            navigator.app.exitApp();
+        });
+
+        $("#lotto_btn").click(function(){
+            location.reload();
+        });
+
+        $("#lotto_back").click(function(){
+           parent.history.back();
+           return false;
+        });
+
+    });
+
+    </script>
+
+
+    <!-- ************************************** -->
+    <!-- indexPage                              -->
+    <!-- ************************************** -->
+    <div data-role="page" id="basePage">
+
+        <div data-role="header" data-position="fixed">
+            <h1>마음 따뜻한 세상</h1>
+        </div>
+
+        <div role="main" class="ui-content">
+
+            <div id="main_photo">
+            </div>
+
+            <br>
+
+            <ul id="main_list" data-role="listview">
+                <li><a href="index_main.html" data-ajax="false" > 마음 따뜻한 글 / 시 </a> </li>
+                <li><a href="index_photo.html" data-ajax="false" > 마음 따뜻한 이미지 </a> </li>
+                <li><a href="index_story.html" data-ajax="false" > 마음 따뜻한 이야기 </a> </li>
+                <li><a href="index_old.html" data-ajax="false" > 마음을 키우는 고전 </a> </li>
+                <li><a href="#lottoPage"  > 행운의 로또 </a> </li>
+                <li><a href="book_mine.html" data-ajax="false" > 나의 글모음 </a> </li>
+                <li><a href="book_view.html" data-ajax="false" > 글모음 목록 </a> </li>
+                <li><a href="postaddpage.html" data-ajax="false"> 글 남기기 </a> </li>
+                <li><a href="postpage.html" data-ajax="false"> 남긴 글 보기</a></li>
+                <li><a href="" id="home_exit"> 종료</a></li>
+            </ul>
+
+        </div>
+
+        <div data-role="footer">
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+    <!-- ************************************** -->
+    <!-- Lotto Page                               -->
+    <!-- ************************************** -->
+    <div data-role="page" id="lottoPage">
+
+        <div data-role="header" data-position="fixed">
+            <h1>행운의 로또 20</h1>
+            <a href="" data-icon="arrow-l" id=back_top data-theme="c" class="ui-btn-left" data-iconpos="notext" data-rel="back" ></a>
+            <a href="" data-icon="refresh" id=refresh_lotto data-theme="c" class="ui-btn-right" data-iconpos="notext"></a>
+        </div>
+
+        <div role="main" class="ui-content">
+            <h2> 행운의 로또 </h2>
+            <img src="./img/lotto/lotto645.gif" width="250">
+            <br><br>
+            <div id="lottoList">
+            </div>
+
+            <br>
+            <fieldset class="ui-grid-a">
+                <div class="ui-block-a"><a href="" id="lotto_btn" data-role="button">한번 더</a></div>
+            </fieldset>
+
+        </div>
+
+        <div data-role="footer">
+            <div data-role="navbar">
+                <ul>
+                    <li><a id="lotto_back" href="" class="ui-btn-active" data-icon="home">Home</a></li>
+                </ul>
+            </div>
+            <h4><small>따뜻한 세상</small></h4>
+        </div>
+
+    </div>
+
+</body>
+</html>
